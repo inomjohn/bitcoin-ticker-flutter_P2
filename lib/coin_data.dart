@@ -1,30 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-const coinAPIURL = 'https://rest.coinapi.io/v1/exchangerate';
-const apiKey = '0960DBA4-F590-44C4-868A-524E096C0329';
-
-class CoinData {
-  Future<double> getCoinData(String bitcoin, String currency) async {
-    String requestURL =
-        '$coinAPIURL/$cryptoList/$currenciesList?apikey=$apiKey';
-    http.Response response = await http.get(
-      Uri.parse(requestURL),
-    );
-
-    if (response.statusCode == 200) {
-      var decodedData = jsonDecode(response.body);
-
-      //String change1 = decodedData(data)['asset_id_base'];
-      //String change2 = decodedData(data)['asset_id_quote'];
-
-    } else {
-      print(response.statusCode);
-      throw 'Problem with the get request';
-    }
-  }
-}
-
 const List<String> currenciesList = [
   'AUD',
   'BRL',
@@ -54,3 +30,31 @@ const List<String> cryptoList = [
   'ETH',
   'LTC',
 ];
+
+const coinAPIURL = 'https://rest.coinapi.io/v1/exchangerate';
+const apiKey = '0960DBA4-F590-44C4-868A-524E096C0329';
+
+class CoinData {
+  //3. Create the Asynchronous method getCoinData() that returns a Future (the price data).
+  Future getCoinData(String coin, String selectedCurrency) async {
+    //4. Create a url combining the coinAPIURL with the currencies we're interested, BTC to USD.
+    String requestURL = '$coinAPIURL/$coin/$selectedCurrency?apikey=$apiKey';
+    //5. Make a GET request to the URL and wait for the response.
+    http.Response response = await http.get(Uri.parse(requestURL));
+
+    //6. Check that the request was successful.
+    if (response.statusCode == 200) {
+      //7. Use the 'dart:convert' package to decode the JSON data that comes back from coinapi.io.
+      var decodedData = jsonDecode(response.body);
+      //8. Get the last price of bitcoin with the key 'last'.
+      var lastPrice = decodedData['rate'];
+      //9. Output the lastPrice from the method.
+      return lastPrice;
+    } else {
+      //10. Handle any errors that occur during the request.
+      print(response.statusCode);
+      //Optional: throw an error if our request fails.
+      throw 'Problem with the get request';
+    }
+  }
+}

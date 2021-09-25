@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'coin_data.dart';
 import 'dart:io' show Platform;
 
@@ -8,20 +8,23 @@ class PriceScreen extends StatefulWidget {
   _PriceScreenState createState() => _PriceScreenState();
 }
 
-String selectedCurrency = 'USD';
-
 class _PriceScreenState extends State<PriceScreen> {
-  List<String> coinPrices;
-  DropdownButton<String> androidDropDown() {
-    List<DropdownMenuItem<String>> dropdownItem = [];
+  String selectedCurrency = 'USD';
+  List<String> coinsList;
+
+  DropdownButton<String> androidDropdown() {
+    List<DropdownMenuItem<String>> dropdownItems = [];
     for (String currency in currenciesList) {
-      var newItems = DropdownMenuItem(child: Text(currency), value: currency);
-      dropdownItem.add(newItems);
+      var newItem = DropdownMenuItem(
+        child: Text(currency),
+        value: currency,
+      );
+      dropdownItems.add(newItem);
     }
 
     return DropdownButton<String>(
       value: selectedCurrency,
-      items: dropdownItem,
+      items: dropdownItems,
       onChanged: (value) {
         setState(() {
           selectedCurrency = value;
@@ -47,20 +50,26 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  String bitcoinValuePrice = '?';
-  String etheriumValuePrice = '?';
-  String litecointValuePrice = '?';
+  //12. Create a variable to hold the value and use in our Text Widget. Give the variable a starting value of '?' before the data comes back from the async methods.
+  String bitcoinValueInUSD = '?';
+  String ethereumValueInUSD = '?';
+  String liteCoinValueInUSD = '?';
 
-  Future<void> getData() async {
+  //11. Create an async method here await the coin data from coin_data.dart
+  void getData() async {
     try {
-      double BTCprice = await CoinData().getCoinData("BTC", selectedCurrency);
-      double ETCprice = await CoinData().getCoinData("ETC", selectedCurrency);
-      double LTCprice = await CoinData().getCoinData("LTC", selectedCurrency);
-
+      double data = await CoinData().getCoinData('BTC', selectedCurrency);
+      double data1 = await CoinData().getCoinData('ETH', selectedCurrency);
+      double data2 = await CoinData().getCoinData('LTC', selectedCurrency);
+      print(data);
+      print(data1);
+      print(data2);
+      //13. We can't await in a setState(). So you have to separate it out into two steps.
       setState(() {
-        bitcoinValuePrice = BTCprice.toStringAsFixed(0);
-        etheriumValuePrice = ETCprice.toStringAsFixed(0);
-        litecointValuePrice = LTCprice.toStringAsFixed(0);
+        bitcoinValueInUSD = data.toStringAsFixed(0);
+        ethereumValueInUSD = data1.toStringAsFixed(0);
+        liteCoinValueInUSD = data2.toStringAsFixed(0);
+        coinsList = [bitcoinValueInUSD, ethereumValueInUSD, liteCoinValueInUSD];
       });
     } catch (e) {
       print(e);
@@ -69,9 +78,9 @@ class _PriceScreenState extends State<PriceScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    coinPrices = [bitcoinValuePrice, etheriumValuePrice, litecointValuePrice];
+    coinsList = [bitcoinValueInUSD, ethereumValueInUSD, liteCoinValueInUSD];
+    //14. Call getData() when the screen loads up. We can't call CoinData().getCoinData() directly here because we can't make initState() async.
     getData();
   }
 
@@ -79,16 +88,16 @@ class _PriceScreenState extends State<PriceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: Text('🤑 Coin Ticker')),
+        title: Text('🤑 Coin Ticker'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
+        children: [
           Expanded(
             child: ListView.builder(
               itemCount: cryptoList.length,
-              itemBuilder: (context, index) {
+              itemBuilder: (BuildContext context, int index) {
                 return Padding(
                   padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
                   child: Card(
@@ -101,7 +110,8 @@ class _PriceScreenState extends State<PriceScreen> {
                       padding: EdgeInsets.symmetric(
                           vertical: 15.0, horizontal: 28.0),
                       child: Text(
-                        '1 ${cryptoList[index]} = ${coinPrices[index]} $selectedCurrency',
+                        //15. Update the Text Widget with the data in bitcoinValueInUSD.
+                        '1 ${cryptoList[index]} = ${coinsList[index]} $selectedCurrency',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20.0,
@@ -119,7 +129,7 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: Platform.isIOS ? iOSPicker() : androidDropDown(),
+            child: Platform.isIOS ? iOSPicker() : androidDropdown(),
           ),
         ],
       ),
